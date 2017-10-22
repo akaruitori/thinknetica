@@ -1,1 +1,1 @@
-# thinknetica
+Для заданий интенсива от школы Thinkhetica. 
