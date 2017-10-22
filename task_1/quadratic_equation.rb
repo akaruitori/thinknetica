@@ -11,11 +11,12 @@ c = gets.to_f
 
 d = b**2 - 4 * a * c
 puts "Дискриминант этого уравнения равен #{d}"
+sqrt_d = Math.sqrt(d)
 
 if d < 0
   puts 'Действительных корней нет.'
 elsif d == 0
-  puts "Есть один корень: #{(-b + Math.sqrt(d)) / (2 * a)}"
+  puts "Есть один корень: #{ -b / (2 * a)}"
 else
-  puts "Корни уравнения: #{(-b + Math.sqrt(d)) / (2 * a)} и #{(-b - Math.sqrt(d)) / (2 * a)}"
+  puts "Корни уравнения: #{(-b + sqrt_d) / (2 * a)} и #{(-b - sqrt_d) / (2 * a)}"
 end  
