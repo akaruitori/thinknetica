@@ -20,6 +20,6 @@ puts 'И день:'
 day = gets.to_i
 
 day_of_year = months[0...month-1].sum + day
-day_of_year += 1 if leap?(year)
+day_of_year += 1 if leap?(year) && month > 2
 
 puts "Это #{day_of_year}-й день с начала #{year} года."

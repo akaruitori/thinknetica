@@ -9,3 +9,5 @@ vowels = {}
 letters.each_char do |letter|
   vowels[letter] = letters.index(letter) + 1 if 'аеёиоуыэюя'.include?(letter)
 end
+
+puts vowels
