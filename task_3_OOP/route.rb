@@ -9,25 +9,23 @@
 =end
 
 class Route
+  attr_reader :stations
+
   def initialize(departure_station, destination_station)
-    @departure_station = departure_station
-    @destination_station = destination_station
-    @intermediate_stations = []
+    @stations = [departure_station, destination_station]
   end
   
   def add_intermediate_station(station)
-    @intermediate_stations << station
+    @stations.insert(-2, station)
   end
   
   def remove_intermediate_station(station)
-    @intermediate_stations.delete(station)
-  end
-
-  def all_stations
-    [@departure_station] + @intermediate_stations + [@destination_station]
+    unless [stations.first, stations.last].include?(station)
+      @stations.delete(station)
+    end
   end
 
   def to_s
-    all_stations.join(' - ')   
+    stations.join(' - ')   
   end
 end

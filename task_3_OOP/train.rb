@@ -25,8 +25,6 @@ class Train
     @type = type
     @number_of_wagons = number_of_wagons
     @speed = 0
-    @route = nil
-    @current_location_index = nil
   end
 
   def speed_up(additional_speed=80)
@@ -38,40 +36,36 @@ class Train
   end
 
   def attach_wagon
-    if @speed != 0
-      puts 'Ошибка. Невозможно присоединить вагон, когда поезд движется.'
-    else
+    if @speed == 0
       @number_of_wagons += 1
+    else
+      puts 'Ошибка. Невозможно присоединить вагон, когда поезд движется.'
     end
   end
 
   def detach_wagon
-    if @speed != 0
-      puts 'Ошибка. Невозможно отсоединить вагон, когда поезд движется.'
-    elsif @number_of_wagons == 1
-      puts 'Ошибка. Невозможно отсоединить последний вагон.'
-    else    
+    if @speed == 0 && @number_of_wagons > 0
       @number_of_wagons -= 1
+    elsif @number_of_wagons == 0
+      puts 'Ошибка. Все вагоны уже отсоединены.'
+    else    
+      puts 'Ошибка. Невозможно отсоединить вагон, когда поезд движется.'
     end
   end
 
   def assign_a_route(route)
     @route = route
-    speed_up
     @current_location_index = 0
-    current_station.handle(self)
-    brake    
+    current_station.handle(self) 
   end
 
   def go_to_next_station
-    if @current_location_index == @route.all_stations.size - 1
+    if @current_location_index == @route.stations.size - 1
       puts 'Ошибка, поезд на последней станции маршрута.'
     else
       current_station.depart(self)
-      speed_up
       @current_location_index += 1
-      current_station.handle(self)      
-      brake
+      current_station.handle(self)
     end
   end
 
@@ -80,30 +74,24 @@ class Train
       puts 'Ошибка, поезд на первой станции маршрута'
     else
       current_station.depart(self)
-      speed_up
       @current_location_index -= 1
-      current_station.handle(self)
-      brake      
+      current_station.handle(self) 
     end
   end
 
   def previous_station
-    if @current_location_index == 0
-      'Поезд на первой станции маршрута'
-    else
-      @route.all_stations[@current_location_index - 1]
+    unless @current_location_index == 0
+      @route.stations[@current_location_index - 1]
     end
   end
 
   def current_station
-    @route ? @route.all_stations[@current_location_index] : 'Депо'
+    @route ? @route.stations[@current_location_index] : nil
   end
 
   def next_station
-    if @current_location_index == @route.all_stations.size - 1
-      'Поезд на последней станции маршрута'
-    else
-      @route.all_stations[@current_location_index + 1]
+    unless @current_location_index == @route.stations.size - 1
+      @route.stations[@current_location_index + 1]
     end
   end
 

@@ -20,12 +20,16 @@ puts
   train_1.assign_a_route(route_1)
   train_2.assign_a_route(route_2)
   train_1.attach_wagon
+
   puts "Сейчас на станции #{stations[0]} следующие поезда:\n" \
-     "#{stations[0].current_trains}"
+     "#{stations[0].current_trains.join("\n")}"
+  puts
+
   6.times { train_1.go_to_next_station }
   train_1.go_to_previous_station
   train_2.detach_wagon
   train_2.go_to_next_station
+  
   puts train_1.info
   puts
   puts train_2.info
@@ -34,9 +38,9 @@ end
 
 puts "Сейчас на станции #{stations[5]} пассажирских поездов: " \
      "#{stations[5].total_trains(:passenger)}.\n" \
-     "#{stations[5].current_trains(type = :passenger)}"
+     "#{stations[5].current_trains(type = :passenger).join("\n")}"
 
 puts     
 puts "Сейчас на станции #{stations[9]} грузовых поездов: " \
      "#{stations[9].total_trains(:freight)}.\n" \
-     "#{stations[9].current_trains(type = :freight)}"
+     "#{stations[9].current_trains(type = :freight).join("\n")}"

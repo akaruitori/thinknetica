@@ -24,12 +24,12 @@ class Station
   end
   
   def current_trains(type=:all)
-    return @trains.join("\n") if type == :all
-    @trains.select { |train| train.type == type }.join("\n")
+    return @trains if type == :all
+    @trains.select { |train| train.type == type }
   end
 
-  def total_trains(type)
-    @trains.select { |train| train.type == type }.size
+  def total_trains(type=:all)
+    current_trains(type).size
   end
 
   def to_s
