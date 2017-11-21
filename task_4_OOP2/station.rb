@@ -10,25 +10,11 @@
 =end
 
 class Station
-  def self.from_user_input
-    puts 'Введите название для новой станции:'
-    self.new(gets.chomp)
-  end
-  
+  attr_reader :trains
+
   def initialize(name)
     @name = name
     @trains = []
-
-    puts "Станция #{self} создана"
-  end
-
-  def info
-    if @trains.empty?
-      "На станции #{self} нет поездов"
-    else
-      "Сейчас на станции #{self} следующие поезда:\n" \
-      "#{self.current_trains.join("\n")}"
-    end
   end
 
   def to_s

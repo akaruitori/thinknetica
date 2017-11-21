@@ -9,21 +9,10 @@
 =end
 
 class Route
-  attr_reader :stations, :actions
+  attr_reader :stations
 
   def initialize(departure_station, destination_station)
     @stations = [departure_station, destination_station]
-    @actions = {add_intermediate_station: 'Добавить станцию'}
-    puts "Маршрут #{self} создан"
-  end
-
-  def process_action(action, station)
-    case action
-    when :add_intermediate_station
-      self.add_intermediate_station(station)
-    when :remove_intermediate_station
-      self.remove_intermediate_station(station)
-    end
   end
 
   def to_s
@@ -31,16 +20,12 @@ class Route
   end
   
   def add_intermediate_station(station)
-    @stations.insert(-2, station)
-    puts "Станция #{station} добавлена в маршрут"
-    @actions[:remove_intermediate_station] = 'Убрать станцию'
+    @stations.insert(-2, station)    
   end
   
   def remove_intermediate_station(station)
     unless [stations.first, stations.last].include?(station)
       @stations.delete(station)
-      puts "Станция #{station} удалена из маршрута"
-      @actions.delete(:remove_intermediate_station) if @stations.size == 2
-    end    
+    end
   end
 end
