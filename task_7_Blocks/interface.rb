@@ -4,31 +4,16 @@ require_relative 'route'
 require_relative 'passenger_train'
 require_relative 'cargo_train'
 
-# Класс хранит текущий список объектов, а также возможные действия пользователя 
-# в главном меню в виде хеша {символ: соответствующий метод}.
-# Когда юзер выбирает действие, в метод process_main_menu передается символ, 
-# и он запускает соответствующий метод (для удобства назову такие методы 
-# подметодами).
-
-# Подметод определяет, какие ему нужны данные для вызова методов 
-# станций, маршрутов и поездов. И ещё при необходимости добавляет пункты 
-# в главное меню (если уже созданы две станции, то должна появиться возможность 
-# создать маршрут и т.п.). 
-
-# Далее с помощью служебных методов choose (возвращает выбранный из массива 
-# объект) и choose_action (принимает хеш, возвращает символ) у юзера выясняем, 
-# что конкретно делаем, и запускаем нужный метод выбранного инстанса или класса.
-
 class Interface
   attr_reader :main_menu
 
   def initialize
-    @stations =[]
+    @stations = []
     @routes = []
     @trains = []
 
     @main_menu = {
-      add_station: 'Создать станцию', 
+      add_station: 'Создать станцию',
       add_train: 'Создать поезд'
     }
   end
@@ -41,25 +26,15 @@ class Interface
     when :manage_route then manage_route
     when :manage_train then manage_train
     when :show_station_info then show_station_info
-    else
-      exit
     end
   end
 
-  def choose_action(actions_hash, 
-                    exit_option = false,
+  def choose_action(actions_hash,
                     question = 'Выберете действие:')
-    puts question
-    actions_hash.values.each_with_index { |action, i| puts "#{i+1}. #{action}" }
-    puts 'Для выхода из программы нажмите любую другую клавишу.' if exit_option
-    puts 
+    action_texts = actions_hash.values
+    choice = choose(action_texts, question)
 
-    choice = gets.to_i
-    if choice == 0 && exit_option
-      :exit
-    else
-      actions_hash.keys[choice - 1]
-    end
+    actions_hash.keys[choice]
   end
 
   def add_station
@@ -76,22 +51,18 @@ class Interface
   end
 
   def add_train
-    puts "Выберете тип поезда:\n1. Пассажирский\n2. Грузовой"
-    choice = gets.to_i
-
-    puts 'Введите номер нового поезда:'
-    number = gets.chomp
+    choice = choose(%w[Пассажирский Грузовой], 'Выберете тип поезда:')
 
     begin
-    @trains << case choice
-               when 1 then PassengerTrain.new(number)
-               when 2 then CargoTrain.new(number)
-               end
+      puts 'Введите номер нового поезда:'
+      number = gets.chomp
+      @trains << case choice
+                 when 0 then PassengerTrain.new(number)
+                 when 1 then CargoTrain.new(number)
+                 end
     rescue RuntimeError => error_message
       puts error_message
       puts
-      puts 'Введите номер нового поезда:'
-      number = gets.chomp
       retry
     end
 
@@ -100,7 +71,7 @@ class Interface
   end
 
   def new_passenger_wagon
-    puts "Введите количество мест в вагоне."
+    puts 'Введите количество мест в вагоне.'
     seats_number = gets.to_i
     PassengerWagon.new(seats_number)
   rescue RuntimeError => error_message
@@ -110,7 +81,7 @@ class Interface
   end
 
   def new_cargo_wagon
-    puts "Укажите объем вагона в кубических метрах."
+    puts 'Укажите объем вагона в кубических метрах.'
     capacity = gets.to_i
     CargoWagon.new(capacity)
   rescue RuntimeError => error_message
@@ -118,13 +89,11 @@ class Interface
     puts
     retry
   end
-  
+
   def add_route
-    departure_station = choose(@stations, 
-                               question = 'Выберете станцию отправления:')
-    destination_station = choose(@stations, 
-                                 question = 'Выберете станцию назначения:')
-    @routes << Route.new(departure_station, destination_station)
+    departure = @stations[choose(@stations, 'Выберете станцию отправления:')]
+    destination = @stations[choose(@stations, 'Выберете станцию назначения:')]
+    @routes << Route.new(departure, destination)
   rescue RuntimeError => error_message
     puts error_message
     puts
@@ -135,25 +104,25 @@ class Interface
   end
 
   def manage_route
-    route = choose(@routes, question = 'Выберете маршрут:')
+    route = @routes[choose(@routes, 'Выберете маршрут:')]
     action_key = choose_route_action(route)
     process_route_action(route, action_key)
   end
-  
+
   def manage_train
-    train = choose(@trains, question = 'Выберете поезд:')
+    train = @trains[choose(@trains, 'Выберете поезд:')]
     action_key = choose_train_action(train)
-    process_train_action(train, action_key)    
+    process_train_action(train, action_key)
   end
 
   def show_station_info
-    station = choose(@stations, question = 'Выберете станцию:')
+    station = @stations[choose(@stations, 'Выберете станцию:')]
 
     if station.trains.empty?
       puts "На станции #{station} нет поездов"
     else
       puts "Сейчас на станции #{station} следующие поезда:"
-      station.each_train { |train| puts "#{train}" }
+      station.each_train { |train| puts train.to_s }
     end
   end
 
@@ -161,30 +130,33 @@ class Interface
 
   def choose(items, question = nil)
     if items.size == 1
-      puts "Автоматически выбран единственный объект: #{items.first}"
-      return items.first
+      puts 'Автоматически выбран единственный объект.'
+      return 0
     end
 
     puts question
-    items.each_with_index { |item, i| puts "#{i+1}. #{item}" }
+    items.each_with_index { |item, i| puts "#{i + 1}. #{item}" }
 
-    choice = gets.to_i
-    items[choice - 1]
+    gets.to_i - 1
   end
 
   def add_main_menu_option(key, description)
-    main_menu[key] = description unless main_menu.has_key?(key)
+    main_menu[key] = description unless main_menu.key?(key)
   end
 
-  def choose_route_action(route)
-    actions = {add_intermediate_station: 'Добавить станцию',
-               remove_intermediate_station: 'Удалить станцию'}
+  def choose_route_action(_route)
+    actions = { add_intermediate_station: 'Добавить станцию',
+                remove_intermediate_station: 'Удалить станцию' }
     choose_action(actions)
   end
 
   def choose_train_action(train)
-    actions = {attach_wagon: 'Прицепить вагон',
-               assign_a_route: 'Назначить маршрут'}
+    choose_action(gather_train_actions(train))
+  end
+
+  def gather_train_actions(train)
+    actions = { attach_wagon: 'Прицепить вагон' }
+    actions[:assign_a_route] = 'Назначить маршрут' if @routes.any?
 
     if train.wagons.any?
       actions[:detach_wagon] = 'Отсоединить вагон'
@@ -192,7 +164,7 @@ class Interface
 
       if train.is_a? PassengerTrain
         actions[:occupy_a_seat] = 'Занять место в вагоне'
-      else
+      elsif train.is_a? CargoTrain
         actions[:fill_wagon] = 'Занять объем в вагоне'
       end
     end
@@ -201,8 +173,7 @@ class Interface
       actions[:go_to_next_station] = 'Поехать на следующую станцию'
       actions[:go_to_previous_station] = 'Поехать на предыдущую станцию'
     end
-
-    choose_action(actions)
+    actions
   end
 
   def process_route_action(route, action_key)
@@ -215,7 +186,7 @@ class Interface
   def add_intermediate_station(route)
     stations_to_add = @stations - route.stations
     if stations_to_add.any?
-      station = choose(stations_to_add, question = 'Выберете станцию:')
+      station = stations_to_add[choose(stations_to_add, 'Выберете станцию:')]
       route.add_intermediate_station(station)
       puts "Станция #{station} добавлена в маршрут."
     else
@@ -226,7 +197,9 @@ class Interface
   def remove_intermediate_station(route)
     stations_to_remove = route.stations[1...-1]
     if stations_to_remove.any?
-      station = choose(stations_to_remove, question = 'Выберете станцию:')
+      station = stations_to_remove[
+                choose(stations_to_remove, 'Выберете станцию:')
+                ]
       route.remove_intermediate_station(station)
       puts "Станция #{station} удалена из маршрута"
     else
@@ -239,47 +212,43 @@ class Interface
     when :attach_wagon then attach_wagon(train)
     when :detach_wagon then detach_wagon(train)
     when :assign_a_route then assign_a_route(train)
-    when :go_to_next_station then go_to_next_station(train)     
+    when :go_to_next_station then go_to_next_station(train)
     when :go_to_previous_station then go_to_previous_station(train)
     when :show_all_wagons then show_all_wagons(train)
     when :occupy_a_seat then occupy_a_seat(train)
-    when :fill_wagon then  fill_wagon(train)
+    when :fill_wagon then fill_wagon(train)
     end
   end
 
   def attach_wagon(train)
-    unless train.speed == 0
+    unless train.speed.zero?
       puts 'Ошибка. Невозможно присоединить вагон, когда поезд движется.'
       return nil
     end
 
     if train.is_a? PassengerTrain
       train.attach_wagon(new_passenger_wagon)
-      puts 'Пассажирский вагон прицеплен'
+      puts 'Пассажирский вагон прицеплен.'
     elsif train.is_a? CargoTrain
       train.attach_wagon(new_cargo_wagon)
-      puts 'Грузовой вагон прицеплен'
+      puts 'Грузовой вагон прицеплен.'
     end
   end
 
   def detach_wagon(train)
-    unless train.speed == 0
+    unless train.speed.zero?
       puts 'Ошибка. Невозможно отсоединить вагон, когда поезд движется.'
       return nil
     end
 
     train.detach_wagon(train.wagons.last)
-    puts 'Вагон отцеплен'
+    puts 'Вагон отцеплен.'
   end
 
   def assign_a_route(train)
-    if @routes.empty?
-      puts 'Ошибка. Ни одного маршрута пока не создано.'
-    else
-      route = choose(@routes, question = 'Выберете маршрут:')
-      train.assign_a_route(route)
-      puts 'Маршрут назначен'
-    end
+    route = @routes[choose(@routes, 'Выберете маршрут:')]
+    train.assign_a_route(route)
+    puts 'Маршрут назначен'
   end
 
   def go_to_next_station(train)
@@ -305,29 +274,25 @@ class Interface
   end
 
   def occupy_a_seat(train)
-    begin
-      wagon = choose(train.wagons, question = 'Выберете вагон:')
-      wagon.occupy_a_seat
-      puts "Место занято, в вагоне осталось #{wagon.available_seats} "\
-      "свободных мест."
-    rescue RuntimeError => error_message
-      puts error_message
-      puts
-      retry
-    end
+    wagon = train.wagons[choose(train.wagons, 'Выберете вагон:')]
+    wagon.occupy_a_seat
+    puts "Место занято, в вагоне осталось #{wagon.available_seats} "\
+    'свободных мест.'
+  rescue RuntimeError => error_message
+    puts error_message
+    puts
+    retry
   end
 
   def fill_wagon(train)
-    begin
-      wagon = choose(train.wagons, question = 'Выберете вагон:')
-      puts 'Введите объем, который нужно занять, в кубических метрах:'
-      volume = gets.to_i
-      wagon.fill_wagon(volume)
-      puts "Готово, в этом вагоне свободно ещё #{wagon.available_volume} м³."
-    rescue RuntimeError => error_message
-      puts error_message
-      puts
-      retry
-    end
+    wagon = train.wagons[choose(train.wagons, 'Выберете вагон:')]
+    puts 'Введите объем, который нужно занять, в кубических метрах:'
+    volume = gets.to_i
+    wagon.fill_wagon(volume)
+    puts "Готово, в этом вагоне свободно ещё #{wagon.available_volume} м³."
+  rescue RuntimeError => error_message
+    puts error_message
+    puts
+    retry
   end
 end

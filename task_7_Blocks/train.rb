@@ -1,21 +1,3 @@
-=begin
-Класс Train (Поезд):
-Имеет номер (произвольная строка) и тип (грузовой, пассажирский) и количество 
-  вагонов, эти данные указываются при создании экземпляра класса
-Может набирать скорость
-Может возвращать текущую скорость
-Может тормозить (сбрасывать скорость до нуля)
-Может возвращать количество вагонов
-Может прицеплять/отцеплять вагоны (объект вагона должен передаваться 
-  как аругмент метода и сохраняться во внутреннем массиве поезда). 
-  Прицепка/отцепка вагонов может осуществляться только если поезд не движется.
-Может принимать маршрут следования (объект класса Route). 
-При назначении маршрута поезду, поезд автоматически помещается на первую 
-  станцию в маршруте.
-Может перемещаться между станциями, указанными в маршруте. Перемещение возможно 
-  вперед и назад, но только на 1 станцию за раз.
-Возвращать предыдущую станцию, текущую, следующую, на основе маршрута
-=end
 require_relative 'company_name'
 require_relative 'instance_counter'
 
@@ -28,24 +10,27 @@ class Train
 
   NUMBER_FORMAT = /^[a-zа-я\d]{3}-?[a-zа-я\d]{2}$/i
 
-  @@all_by_number = {}
+  @all_by_number = {}
+
+  class << self
+    attr_accessor :all_by_number
+  end
 
   def self.find(number)
-    @@all_by_number[number]
+    @all_by_number[number]
   end
 
   def initialize(number)
     @number = number
     @speed = 0
     @wagons = []
-    
+
     validate!
-    @@all_by_number[number] = self
+    self.class.all_by_number[number] = self
     register_instance
   end
 
-  def attach_wagon(wagon)
-  end
+  def attach_wagon(wagon); end
 
   def detach_wagon(wagon)
     @wagons.delete(wagon)
@@ -53,7 +38,7 @@ class Train
 
   def assign_a_route(route)
     current_station.depart(self) if @route
-    
+
     @route = route
     @current_location_index = 0
     current_station.handle(self)
@@ -72,7 +57,7 @@ class Train
   end
 
   def on_first_station?
-    @current_location_index == 0    
+    @current_location_index.zero?
   end
 
   def on_last_station?
@@ -85,7 +70,7 @@ class Train
 
   def valid?
     validate!
-  rescue
+  rescue StandardError
     false
   end
 
@@ -100,13 +85,12 @@ class Train
   protected
 
   def validate!
-    p @number
     raise 'Номер поезда не может отсутствовать.' if @number.empty?
     raise 'Неверно указан номер поезда.' if @number !~ NUMBER_FORMAT
     true
   end
 
-  def speed_up(additional_speed=80)
+  def speed_up(additional_speed = 80)
     @speed += additional_speed
   end
 
@@ -115,14 +99,12 @@ class Train
   end
 
   def previous_station
-    unless @current_location_index == 0
-      @route.stations[@current_location_index - 1]
-    end
+    return unless @current_location_index.zero?
+    @route.stations[@current_location_index - 1]
   end
 
   def next_station
-    unless @current_location_index == @route.stations.size - 1
-      @route.stations[@current_location_index + 1]
-    end
+    return unless @current_location_index == @route.stations.size - 1
+    @route.stations[@current_location_index + 1]
   end
 end

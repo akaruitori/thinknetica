@@ -1,4 +1,6 @@
 class PassengerWagon
+  include CompanyName
+
   attr_reader :occupied_seats
 
   def initialize(seats_number)
@@ -9,16 +11,13 @@ class PassengerWagon
   end
 
   def validate!
-    unless (1..100).cover?(@seats_number)
-      raise "В вагоне может быть от 1 до 100 мест"
-    end
+    return if (1..100).cover?(@seats_number)
+    raise 'В вагоне может быть от 1 до 100 мест'
   end
 
   def occupy_a_seat
-    if @occupied_seats == @seats_number
-      raise 'Все места в вагоне заняты.'
-    end
-    @occupied_seats += 1 
+    raise 'Все места в вагоне заняты.' if @occupied_seats == @seats_number
+    @occupied_seats += 1
   end
 
   def available_seats

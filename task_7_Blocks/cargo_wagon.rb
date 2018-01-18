@@ -1,4 +1,6 @@
 class CargoWagon
+  include CompanyName
+
   def initialize(capacity)
     @capacity = capacity
     validate!
@@ -7,9 +9,8 @@ class CargoWagon
   end
 
   def validate!
-    unless (50..150).cover?(@capacity)
-      raise 'Объем может составлять от 50 до 150 м³.'
-    end
+    return if (50..150).cover?(@capacity)
+    raise 'Объем может составлять от 50 до 150 м³.'
   end
 
   def fill_wagon(volume)
