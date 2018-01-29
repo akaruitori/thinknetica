@@ -15,7 +15,7 @@ class Train
 
   validate :number, :presence
   validate :number, :format, NUMBER_FORMAT
-  validate :namber, :type, String
+  validate :number, :type, String
  
   @all_by_number = {}
 
